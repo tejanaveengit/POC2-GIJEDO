@@ -2,7 +2,7 @@ FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 
-COPY target/simple-docker-app-*.jar app.jar
+COPY target/simple-docker-app-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
