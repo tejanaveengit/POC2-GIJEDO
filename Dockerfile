@@ -1,14 +1,11 @@
-# Use a lightweight base image
-FROM alpine:3.19
+# Use official Java runtime
+FROM openjdk:17-jdk-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy application files
-COPY app.sh /app/app.sh
+# Copy compiled Java file
+COPY App.class .
 
-# Make script executable
-RUN chmod +x /app/app.sh
-
-# Run the app
-CMD ["./app.sh"]
+# Run the application
+CMD ["java", "App"]
