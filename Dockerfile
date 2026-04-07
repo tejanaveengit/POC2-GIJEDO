@@ -1,11 +1,9 @@
-# Use official Java runtime
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 
-# Set working directory
 WORKDIR /app
 
-# Copy compiled Java file
-COPY App.class .
+COPY target/*.jar app.jar
 
-# Run the application
-CMD ["java", "App"]
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
