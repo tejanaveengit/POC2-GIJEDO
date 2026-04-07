@@ -10,6 +10,10 @@ pipeline {
             steps {
                 checkout scm
             }
+         stage('build') {
+            steps {
+                mvn clean package
+            }
         }
 
         stage('Build Docker Image') {
