@@ -1,78 +1,37 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk17'
-        maven 'maven3'
-    }
-
     environment {
-        APP_NAME = "simple-docker-app"
-        IMAGE_TAG = "latest"
-        JAR_NAME = "simple-docker-app-0.0.1-SNAPSHOT.jar"
+        IMAGE_NAME = "simple-docker-app"
     }
-
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-
-        stage('Build JAR') {
+         stage('build') {
             steps {
-                sh '''
-                    mvn clean package
-                    ls -l target
-                '''
+               sh 'mvn clean package'
             }
         }
-
-        stage('Verify JAR') {
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                    if [ ! -f target/${JAR_NAME} ]; then
-                      echo "❌ JAR not found!"
-                      exit 1
-                    fi
-                '''
+                sh "docker build -t ${IMAGE_NAME}:latest ."
             }
         }
-
-        stage('Docker Build') {
-            steps {
-                sh '''
-                    docker build -t ${APP_NAME}:${IMAGE_TAG} .
-                '''
-            }
-        }
-
         stage('Run Container') {
             steps {
-                sh '''
-                    docker run --rm -d \
-                    -p 8080:8080 \
-                    --name ${APP_NAME} \
-                    ${APP_NAME}:${IMAGE_TAG}
-                '''
+                sh "docker run --rm ${IMAGE_NAME}:latest"
             }
         }
     }
-
     post {
         success {
-            echo "✅ Build and deployment successful"
+            echo 'Pipeline completed successfully!'
         }
-
         failure {
-            echo "❌ Pipeline failed"
-        }
-
-        always {
-            sh '''
-                docker ps -a | grep ${APP_NAME} && docker stop ${APP_NAME} || true
-            '''
+            echo 'Pipeline failed.'
         }
     }
 }
