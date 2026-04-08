@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "simple-docker-app"
+        IMAGE_NAME = "dockerdemmo/simple-docker-app"
     }
     stages {
         stage('Checkout') {
