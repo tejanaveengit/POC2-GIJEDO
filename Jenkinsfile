@@ -20,10 +20,39 @@ pipeline {
                 sh "docker build -t ${IMAGE_NAME}:latest ."
             }
         }
-        stage('Run Container') {
+        stage('Docker Push') {
             steps {
-                sh "docker run --rm ${IMAGE_NAME}:latest"
+                withCredentials([usernamePassword(
+
+                    credentialsId: 'docker-creds',
+
+                    usernameVariable: 'USER',
+
+                    passwordVariable: 'PASS'
+                )]) {
+
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+
+                    sh 'docker push $IMAGE_NAME:latest'
+
+                }
+
             }
+
+        }
+ 
+        stage('Deploy') {
+
+            steps {
+
+                sh '''
+
+                docker run -d -p 8081:8080 --name docker-container $IMAGE_NAME:latest
+
+                '''
+
+            }
+
         }
     }
     post {
