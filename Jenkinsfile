@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "dockerdemmo/simple-docker-app"
+        IMAGE_NAME = "dockerdemmo/simple-docker-app1"
     }
     stages {
         stage('Checkout') {
@@ -47,7 +47,7 @@ pipeline {
 
                 sh '''
 
-                docker run -d -p 8081:8080 --name docker-container $IMAGE_NAME:latest
+                docker run -d -p 8081:8080 --name docker-container1 $IMAGE_NAME:latest
 
                 '''
 
