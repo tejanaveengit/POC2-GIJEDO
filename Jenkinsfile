@@ -1,66 +1,65 @@
 pipeline {
     agent any
-
+ 
     environment {
-        IMAGE_NAME = "dockerdemmo/simple-docker-app2"
+        IMAGE_NAME = "dockerdemmo/simple-docker-app5"
+        TAG = "latest"
     }
+ 
     stages {
+ 
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/tejanaveengit/POC2-GIJEDO.git'
             }
         }
-         stage('build') {
+ 
+        stage('Build') {
             steps {
-               sh 'mvn clean package'
+                sh 'mvn clean package'
             }
         }
-        stage('Build Docker Image') {
+ 
+        stage('Test') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:latest ."
+                sh 'echo "No tests yet"'
             }
         }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube token') {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
+ 
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:$TAG .'
+            }
+        }
+ 
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(
-
                     credentialsId: 'docker-creds',
-
                     usernameVariable: 'USER',
-
                     passwordVariable: 'PASS'
                 )]) {
-
                     sh 'echo $PASS | docker login -u $USER --password-stdin'
-
-                    sh 'docker push $IMAGE_NAME:latest'
-
+                    sh 'docker push $IMAGE_NAME:$TAG'
                 }
-
             }
-
         }
  
         stage('Deploy') {
-
             steps {
-
                 sh '''
-
-                docker run -d -p 8081:8080 --name docker-container2 $IMAGE_NAME:latest
-
+                docker stop poc-container || true
+                docker rm poc-container || true
+                docker run -d -p 8081:8080 --name poc-container $IMAGE_NAME:$TAG
                 '''
-
             }
-
-        }
-    }
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed.'
         }
     }
 }
