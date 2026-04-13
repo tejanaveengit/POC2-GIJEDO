@@ -2,7 +2,7 @@ pipeline {
     agent any
  
     environment {
-        IMAGE_NAME = "dockerdemmo/simple-docker-app5"
+        IMAGE_NAME = "dockerdemmo/simple-docker-app6"
         TAG = "latest"
     }
  
