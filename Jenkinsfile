@@ -2,8 +2,12 @@ pipeline {
     agent any
  
     environment {
-        IMAGE_NAME = "dockerdemmo/simple-docker-app6"
-        TAG = "latest"
+        IMAGE_NAME = "dockerdemmo/simple-docker-app7"
+	  
+    }
+ 
+    tools {
+        maven 'maven'
     }
  
     stages {
@@ -14,17 +18,12 @@ pipeline {
             }
         }
  
-        stage('Build') {
+        stage('Build & Test') {
             steps {
                 sh 'mvn clean package'
             }
         }
  
-        stage('Test') {
-            steps {
-                sh 'echo "No tests yet"'
-            }
-        }
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube') {
@@ -33,14 +32,26 @@ pipeline {
             }
         }
  
-        stage('Docker Build') {
+        stage('Dependency Check') {
+            steps {
+                sh 'mvn org.owasp:dependency-check-maven:check'
+            }
+        }
+ 
+        stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $IMAGE_NAME:$TAG .'
             }
         }
  
-        stage('Docker Push') {
+        stage('Trivy Scan') {
             steps {
+                sh 'trivy image $IMAGE_NAME'
+            }
+        }
+ 
+        stage('Push Docker Image') {
+           steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'docker-creds',
                     usernameVariable: 'USER',
@@ -52,9 +63,8 @@ pipeline {
             }
         }
  
-        stage('Deploy') {
-            steps {
-                sh '''
+        stage('Deploy Container') {
+             sh '''
                 docker stop poc-container || true
                 docker rm poc-container || true
                 docker run -d -p 8081:8080 --name poc-container $IMAGE_NAME:$TAG
