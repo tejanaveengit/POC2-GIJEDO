@@ -1,29 +1,30 @@
 pipeline {
     agent any
- 
+
     environment {
         IMAGE_NAME = "dockerdemmo/simple-docker-app7"
-	  	TAG = "latest"
+        TAG = "latest"
     }
- 
+
     tools {
         maven 'maven'
     }
- 
+
     stages {
- 
+
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/tejanaveengit/POC2-GIJEDO.git'
+                git branch: 'main',
+                    url: 'https://github.com/tejanaveengit/POC2-GIJEDO.git'
             }
         }
- 
+
         stage('Build & Test') {
             steps {
                 sh 'mvn clean package'
             }
         }
- 
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube') {
@@ -31,42 +32,46 @@ pipeline {
                 }
             }
         }
+
         stage('Dependency Check') {
             steps {
                 sh 'mvn org.owasp:dependency-check-maven:check'
             }
         }
- 
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $IMAGE_NAME:$TAG .'
             }
         }
- 
+
         stage('Trivy Scan') {
             steps {
-                sh 'trivy image $IMAGE_NAME'
+                sh 'trivy image $IMAGE_NAME:$TAG'
             }
         }
- 
+
         stage('Push Docker Image') {
-           steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker-creds',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
-                )]) {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'docker-creds',
+                        usernameVariable: 'USER',
+                        passwordVariable: 'PASS'
+                    )
+                ]) {
                     sh 'echo $PASS | docker login -u $USER --password-stdin'
                     sh 'docker push $IMAGE_NAME:$TAG'
                 }
             }
         }
- 
+
         stage('Deploy Container') {
-             sh '''
-                docker stop poc-container || true
-                docker rm poc-container || true
-                docker run -d -p 8081:8080 --name poc-container $IMAGE_NAME:$TAG
+            steps {
+                sh '''
+                    docker stop poc-container || true
+                    docker rm poc-container || true
+                    docker run -d -p 8081:8080 --name poc-container $IMAGE_NAME:$TAG
                 '''
             }
         }
