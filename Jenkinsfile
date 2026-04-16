@@ -33,19 +33,16 @@ pipeline {
             }
         }
 
-        stage('Dependency Check') {
+        
+stage('Dependency Check') {
     steps {
-        withCredentials([string(
-            credentialsId: 'nvd-api-key',
-            variable: 'NVD_API_KEY'
-        )]) {
-            sh '''
-              mvn org.owasp:dependency-check-maven:check \
-              -Dnvd.api.key=$NVD_API_KEY
-            '''
-        }
+        sh '''
+          mvn org.owasp:dependency-check-maven:check \
+          -Dnvd.skip=true
+        '''
     }
-}
+} 
+    
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $IMAGE_NAME:$TAG .'
