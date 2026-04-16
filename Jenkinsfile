@@ -3,7 +3,7 @@ pipeline {
  
     environment {
         IMAGE_NAME = "dockerdemmo/simple-docker-app7"
-	  
+	  	TAG = "latest"
     }
  
     tools {
