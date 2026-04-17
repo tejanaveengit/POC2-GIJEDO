@@ -54,18 +54,24 @@ pipeline {
             }
         }
 
-        //  stage('Trivy Scan') {
-       // steps {
-          //  sh '''
-             //   trivy image \
-             //     --scanners vuln \
-               //   --severity HIGH,CRITICAL \
-                 // --exit-code 1 \
-                 // --skip-version-check \
-                 // $IMAGE_NAME:$TAG
-            // '''
-       // }
-  //  }
+            stage('Trivy Scan') {
+                steps {
+                    script {
+                        sh '''
+                        mkdir -p trivy-cache
+                        # Step 1: Download DB (ignore failure)
+                        trivy image --download-db-only --cache-dir trivy-cache || true
+                        # Step 2: Run scan (never fail pipeline)
+                        trivy image \
+                        --cache-dir trivy-cache \
+                        --skip-db-update \
+                        --scanners vuln \
+                        --exit-code 0 \
+                        $IMAGE_NAME:$TAG || true
+                        '''
+                    }
+                }
+            }
 
         stage('Push Docker Image') {
             steps {
