@@ -33,30 +33,20 @@ pipeline {
             }
         }
 
-           stage('OWASP Dependency Check') {
-        steps {
-            withCredentials([string(
-                credentialsId: 'nvd-api-key',
-                variable: 'NVD_API_KEY'
-            )]) {
-    
-                dependencyCheck(
-                    odcInstallation: 'Dependency-Check',
-                    additionalArguments: """
-                        --scan .
-                        --out ./dc-report
-                        --format XML
-                        --format HTML
-                        --nvdApiKey ${NVD_API_KEY}
-                    """
+              stage('OWASP Scan') {
+                steps {
+                withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_KEY')]) {
+                    dependencyCheck(
+                        odcInstallation: 'Dependency-Check',
+                        additionalArguments: '--scan . --out ./dc-report --format XML --format HTML --noupdate'
+                    )
+                }
+         
+                dependencyCheckPublisher(
+                    pattern: 'dc-report/dependency-check-report.xml'
                 )
             }
-    
-            dependencyCheckPublisher(
-                pattern: 'dc-report/dependency-check-report.xml'
-            )
         }
-    }
         
         stage('Build Docker Image') {
             steps {
