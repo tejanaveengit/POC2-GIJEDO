@@ -54,11 +54,18 @@ pipeline {
             }
         }
 
-        stage('Trivy Scan') {
-            steps {
-                sh 'trivy image $IMAGE_NAME:$TAG'
-            }
+          stage('Trivy Scan') {
+        steps {
+            sh '''
+                trivy image \
+                  --scanners vuln \
+                  --severity HIGH,CRITICAL \
+                  --exit-code 1 \
+                  --skip-version-check \
+                  $IMAGE_NAME:$TAG
+            '''
         }
+    }
 
         stage('Push Docker Image') {
             steps {
