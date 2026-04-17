@@ -33,11 +33,20 @@ pipeline {
             }
         }
 
-        // stage('Dependency Check') {
-          //  steps {
-               // sh 'mvn org.owasp:dependency-check-maven:check'
-           // }
-     //   }
+       stage('OWASP Scan') {
+            steps {
+            withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_KEY')]) {
+                dependencyCheck(
+                    odcInstallation: 'Dependency-Check',
+                    additionalArguments: '--scan . --out ./dc-report --format XML --format HTML --noupdate'
+                )
+            }
+     
+            dependencyCheckPublisher(
+                pattern: 'dc-report/dependency-check-report.xml'
+            )
+        }
+    }
         
         stage('Build Docker Image') {
             steps {
